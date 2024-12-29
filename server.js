@@ -32,7 +32,7 @@ app.listen(9000, function () {
   console.log("server started");
 });
 //get all todo
-app.get("/todo",verifyToken, function (req, res) {
+app.get("/todo", verifyToken, function (req, res) {
   db.query("select * from todo", (err, result) => {
     if (err) throw err;
     res.send(result);
@@ -78,26 +78,46 @@ app.post("/login", jsonparaser, function (req, res) {
     if (err || result.length == 0) {
       res.send({ message: "login error" });
     } else {
-       let response =  { id: result[0].id, name: result[0].name };
-      let token = jwt.sign(response,"secrt",{expiresIn:8000})
-      res.send({message:"success",token:token})
+      let response = { id: result[0].id, name: result[0].name };
+      let token = jwt.sign(response, "secrt", { expiresIn: 8000 });
+      res.send({ message: "success", token: token });
     }
   });
 });
 
-function verifyToken(req,res,next){
-    let authHeader = req.headers.authorization;
+function verifyToken(req, res, next) {
+  let authHeader = req.headers.authorization;
 
-    if(authHeader == undefined){
-       res.status(401).send({message:"invalid token"})
-    }else{
-        let token = authHeader.split(" ")[1];
-        jwt.verify(token,'secrt',function(err,decode){
-            if(err){
-                res.status(500).send({error:"authentication failed"})
-            }else{
-                next();
-            }
-        })
-    }
+  if (authHeader == undefined) {
+    res.status(401).send({ message: "invalid token" });
+  } else {
+    let token = authHeader.split(" ")[1];
+    jwt.verify(token, "secrt", function (err, decode) {
+      if (err) {
+        res.status(500).send({ error: "authentication failed" });
+      } else {
+        next();
+      }
+    });
+  }
 }
+
+app.post("/register", jsonparaser, function (req, res) {
+  let name = req.body.name;
+  let username = req.body.username;
+  let password = req.body.password;
+  if (username == undefined || password == undefined || name == undefined) {
+    res.send({ message: "registration failed" });
+  }
+  var query = `insert into user (username,password,name) values ('${username}','${password}','${name}')`;
+  userDb.query(query, (err, result) => {
+    if (err || result.length == 0) {
+      res.send({ error: " failed" });
+    } else {
+      var  response = {name:name}
+        
+      let token = jwt.sign(response, "secrt", { expiresIn: 8000 });
+      res.send({ message: "success", token: token });
+    }
+  });
+});
