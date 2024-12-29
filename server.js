@@ -13,12 +13,12 @@ var db = mysql.createConnection({
   database: "todo_db",
 });
 
-var userDb = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "users",
-});
+// var userDb = mysql.createConnection({
+//   host: "localhost",
+//   user: "root",
+//   password: "",
+//   database: "users",
+// });
 db.connect((err) => {
   if (err) throw err;
   console.log("connect to database");
@@ -32,7 +32,7 @@ app.listen(9000, function () {
   console.log("server started");
 });
 //get all todo
-app.get("/todo", verifyToken, function (req, res) {
+app.get("/todo", function (req, res) {
   db.query("select * from todo", (err, result) => {
     if (err) throw err;
     res.send(result);
@@ -51,7 +51,9 @@ app.get("/todo/:id", function (req, res) {
 app.post("/todo", jsonparaser, function (req, res) {
   let title = req.body.title;
   let subtitle = req.body.subtitle;
-
+  if (title == undefined || subtitle == undefined) {
+    res.send({ error: "title and subtitle not fount" });
+  }
   let query = `insert into todo (title,subtitle) values ('${title}','${subtitle}')`;
   db.query(query, (err) => {
     if (err) {
@@ -73,8 +75,8 @@ app.post("/login", jsonparaser, function (req, res) {
   if (username == undefined || password == undefined) {
     res.send({ message: "authentication failed" });
   }
-  let query = `select name from user where username = '${username}' and password = sha1('${password}')`;
-  userDb.query(query, (err, result) => {
+  let query = `select name from users where username = '${username}' and password = sha1('${password}')`;
+  db.query(query, (err, result) => {
     if (err || result.length == 0) {
       res.send({ message: "login error" });
     } else {
@@ -109,15 +111,46 @@ app.post("/register", jsonparaser, function (req, res) {
   if (username == undefined || password == undefined || name == undefined) {
     res.send({ message: "registration failed" });
   }
-  var query = `insert into user (username,password,name) values ('${username}','${password}','${name}')`;
-  userDb.query(query, (err, result) => {
+  var query = `insert into users (username,password,name) values ('${username}',sha1('${password}'),'${name}')`;
+  db.query(query, (err, result) => {
     if (err || result.length == 0) {
       res.send({ error: " failed" });
     } else {
-      var  response = {name:name}
-        
+      var response = { name: name };
+
       let token = jwt.sign(response, "secrt", { expiresIn: 8000 });
       res.send({ message: "success", token: token });
     }
   });
 });
+
+app.delete("/todo/:id", function(req,res){
+  let id = req.params.id;
+   let query = `delete from todo where id='${id}'`
+    db.query(query,(err,result)=>{
+      if(err){
+        
+        res.send({message:"error delete"})
+        throw err
+      }else{
+        res.send({message:"delete success"});
+      }
+    })
+} )
+
+app.put("/todo/:id",jsonparaser, function(req,res){
+  let id = req.params.id;
+  let title = req.body.title;
+  let subtitle = req.body.subtitle;
+  if(title == undefined ||subtitle == undefined){
+    res.send({message:"title or subtitle is empty"})
+  }
+    let query = `update todo set title = '${title}' , subtitle = '${subtitle}' where id = ${id}`
+    db.query(query,(err,result)=>{
+       if(err){
+        console.log(err)
+        res.send({message:"error data update"})
+       }
+       res.send({message:"update success"})
+    });
+})
