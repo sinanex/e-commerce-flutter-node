@@ -16,4 +16,15 @@ function postTodo(callback,title,subtitle){
     db.query(query,callback)
 }
 
+
+function deleteTodo(callback,id){
+    var query = `delete from todo where id = '${id}'`
+    db.query(query,(callback))
+
+}
+
+function updateTodo(callback,id){
+    var query = `update from todo set title = '${title}' and subtitle = ${subtitle} where id = '${id}'`
+    db.query(query,callback)
+}
 module.exports = {getAllTodo,getSingleTodo,postTodo}
