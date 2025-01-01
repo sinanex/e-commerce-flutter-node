@@ -28,4 +28,14 @@ function addProduct(req,res){
     },product_name,price)
 }
 
-module.exports = {getProduct,getSingleproduct,addProduct}
+function deleteProduct(req,res){
+    let{id} = req.params
+    productModel.deleteProduct((err)=>{
+        if(err){
+            console.log(err)
+        }
+        res.send({message:"item deleted"})
+    },id)
+}
+
+module.exports = {getProduct,getSingleproduct,addProduct,deleteProduct}
