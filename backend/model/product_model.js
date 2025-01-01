@@ -11,4 +11,9 @@ function getSingleproduct(callback,id){
     db.query(query,callback,id)
 }
 
-module.exports = {getProduct,getSingleproduct};
+function addProduct(callback,product_name,price){
+    let query = `INSERT INTO product(product_name,price) VALUES ('${product_name}','${price}')`
+    db.query(query,callback)
+}
+
+module.exports = {getProduct,getSingleproduct,addProduct};
